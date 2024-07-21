@@ -1,3 +1,4 @@
+
 /**
  * BinomialHeap
  *
@@ -95,12 +96,12 @@ public class BinomialHeap
 	 * Meld the heap with heap2
 	 * 
 	 * seperated to 3 different cases: meld into empty heap, and two more cases @noga
-	 *
+	 *complexity: o(logn), n is num of nodes
 	 */
 	public void meld(BinomialHeap heap2)
 	{
 		//in case heap is empty
-		if (this.size==0){
+		if (this.empty()){
 			this.size = heap2.size;
 			this.last= heap2.last;
 			this.min= heap2.min;
@@ -117,7 +118,7 @@ public class BinomialHeap
 			HeapNode curOriTree = prevOriTree.next;
 			HeapNode curNewTree = heap2.last.next;
 			HeapNode carry = null; 	//carry is a root
-			if (curOriTree.getKey()>curNewTree.getKey() && this.min==curOriTree) { //update min pointer @noga
+			if (curOriTree.getKey()>curNewTree.getKey() && this.min==curOriTree) { //update min pointer
 				this.min =curNewTree;
 			}
 			for (int i=0; i<minLen;i++) {
@@ -178,16 +179,72 @@ public class BinomialHeap
 						}
 						
 						else if(curNewTree.getKey() < carry.getKey() && curOriTree.getKey() > curNewTree.getKey()) { //newTree key is the smallest
-						//TODO
+						
+							curNewTree.next = curOriTree.next;
+							prevOriTree.next= curNewTree;
+							curOriTree.next = null;
+							carry = this.hangHeapCarry(carry, curOriTree);
+							prevOriTree = prevOriTree.next;
+							curOriTree = curOriTree.next;
+							curNewTree = curNewTree.next;
+							originalArray[i+1]=1;
 						}
 					}
 				}
 				
-				//if the arrays are not the same size -> continue on the change
 			}
+			
+			this.last = curOriTree;
+			
+			if (originalArray.length == newArray.length && carry != null) {
+				HeapNode curFirst = curOriTree.next;
+				curOriTree.next = carry;
+				carry.next = curFirst;
+				this.last = carry;
+			}
+			
+			if (originalArray.length < newArray.length) {
+				if (carry!= null) {
+					for (int i=originalArray.length; i<newArray.length; i++) {
+						if (newArray[i]==0) {
+							this.simpleJoin(carry, curOriTree.next, curOriTree);
+							carry=null;	
+							curOriTree = curOriTree.next;
+						}
+						else if (newArray[i]==1) {
+							carry = this.hangHeapCarry(curNewTree, carry);
+							curNewTree = curNewTree.next;
+						}
+					}
+				}
+				else { // carry is null
+					HeapNode curFirst = curOriTree.next;
+					curOriTree.next = curNewTree.next;
+					this.last = heap2.last;
+					heap2.last.next = curFirst;	
+				}
+			
+			}
+			if (originalArray.length > newArray.length) {
+				if (carry!= null) {
+					for (int i= newArray.length; i < originalArray.length; i++) {
+						if (originalArray[i]==1) {
+							carry=this.ComplexJoin(curOriTree, carry, curOriTree.next, prevOriTree);
+							prevOriTree = prevOriTree.next;
+							curOriTree = curOriTree.next;
+							originalArray[i+1]=1;
+							if(carry==null) {
+								break;
+							}
+						}
+					}
+				}
+			}
+			this.size += heap2.size;
 		return;
 		}
 	}
+	
 	
 	
 	//example
@@ -199,11 +256,11 @@ public class BinomialHeap
 	 * 
 	 * Get an array of 0,1 which represents binary number @noga
 	 * Return the reversed array
-	 * Complexity: O(n)
+	 * Complexity: O(t) , t=log(n), n = num of nodes in the heap
 	 *   
 	 */
 	
-	private static int[] reverseArray (int[] array) { //@noga
+	private static int[] reverseArray (int[] array) {
 		int lenArray= array.length;
 		int[] newArray = new int[lenArray];
 		for (int i=0; i<lenArray; i++) {
@@ -314,7 +371,7 @@ public class BinomialHeap
 	 */
 	public int size()
 	{
-		return 0; // should be replaced by student code
+		return size;
 	}
 
 	/**
@@ -325,18 +382,26 @@ public class BinomialHeap
 	 */
 	public boolean empty()
 	{
-		return false; // should be replaced by student code
+		return size==0;
 	}
 
 	/**
 	 * 
-	 * Return the number of trees in the heap.
+	 * Return the number of trees in the heap using Brian Kernighan's Algorithm.
 	 * 
 	 */
-	public int numTrees()
-	{
-		return 0; // should be replaced by student code
+	public int numTrees() {
+		    return bitcount(this.size);
 	}
+	
+	private static int bitcount(int n) { // Method to count the number of 1s in the binary representation of n
+        int count = 0;
+        while (n > 0) {
+            count = count + 1; // Increment the count for each 1 found
+            n = n & (n - 1); // Remove the lowest set bit from n
+        }
+        return count; // Return the total count of 1s
+    }
 
 	/**
 	 * Class implementing a node in a Binomial Heap.
