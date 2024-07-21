@@ -46,6 +46,7 @@ public class BinomialHeap
 		heap2.size = 1;
 		heap2.last = newNode;
 		heap2.min = newNode;
+		heap2.numTree = 1;
 		this.meld(heap2);
 		return newNode.item;
 	}
@@ -196,7 +197,6 @@ public class BinomialHeap
 	}
 
 	
-	//add rank  + numtree updates 
 	/**
 	 * 
 	 * Meld the heap with heap2
@@ -237,6 +237,7 @@ public class BinomialHeap
 					this.simpleJoin(curNewTree, curOriTree,prevOriTree);
 					curNewTree = curNewTree.next;
 					//originalArray[i]=1;
+					this.numTree+=1;
 				}
 				else if (newArray[i]==1 && originalArray[i]==1) {
 					carry=this.ComplexJoin(curOriTree, curNewTree, curOriTree.next, prevOriTree);
@@ -244,18 +245,21 @@ public class BinomialHeap
 					curOriTree = curOriTree.next;
 					curNewTree = curNewTree.next;
 					originalArray[i+1]=1;
+					this.numTree-=1;
 				}
 			}
 				else { 						//carry=1
 					if (newArray[i]==0 && originalArray[i]==0) {
 						this.simpleJoin(carry, curOriTree, prevOriTree);
 						carry=null;
+						this.numTree+=1;
 					}
 					else if (newArray[i]==0 && originalArray[i]==1) {
 						carry=this.ComplexJoin(curOriTree, carry, curOriTree.next, prevOriTree);
 						prevOriTree = prevOriTree.next;
 						curOriTree = curOriTree.next;
 						originalArray[i+1]=1;
+						this.numTree-=1;
 					}
 					else if (newArray[i]==1 && originalArray[i]==0) {
 						carry = this.hangHeapCarry(curNewTree, carry);
@@ -314,21 +318,30 @@ public class BinomialHeap
 					for (int i=originalArray.length; i<newArray.length; i++) {
 						if (newArray[i]==0) {
 							this.simpleJoin(carry, curOriTree.next, curOriTree);
-							carry=null;	
+							carry=null;
+							this.last = carry;
 							curOriTree = curOriTree.next;
+							this.numTree+=1;
+							
 						}
 						else if (newArray[i]==1) {
 							carry = this.hangHeapCarry(curNewTree, carry);
 							curNewTree = curNewTree.next;
 						}
 					}
+					
 				}
 				else { // carry is null
 					HeapNode curFirst = curOriTree.next;
 					curOriTree.next = curNewTree.next;
 					this.last = heap2.last;
-					heap2.last.next = curFirst;	
+					heap2.last.next = curFirst;
+					for (int i = originalArray.length; i<newArray.length; i++) {
+						if (newArray[i]==1)
+							this.numTree+=1;
+					}
 				}
+				
 			
 			}
 			if (originalArray.length > newArray.length) {
@@ -339,8 +352,16 @@ public class BinomialHeap
 							prevOriTree = prevOriTree.next;
 							curOriTree = curOriTree.next;
 							originalArray[i+1]=1;
+							this.numTree-=1;
 							if(carry==null) {
 								break;
+							}
+						}
+						else {
+							this.numTree+=1;
+							this.simpleJoin(carry, curOriTree.next, prevOriTree);
+							if (i==originalArray.length-1) {
+								this.last = carry;
 							}
 						}
 					}
