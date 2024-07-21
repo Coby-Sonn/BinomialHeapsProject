@@ -443,6 +443,12 @@ public class BinomialHeap
 	 */
 	
 	private HeapNode hangHeap(HeapNode topRoot, HeapNode lowRoot) {
+		
+		if(topRoot.child==null) {
+			topRoot.child = lowRoot;
+			return topRoot;
+		}
+		
 		lowRoot.next = topRoot.child.next;
 		topRoot.child.next = lowRoot;
 		topRoot.child = lowRoot;
