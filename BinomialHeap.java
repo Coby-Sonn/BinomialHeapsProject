@@ -10,6 +10,7 @@ public class BinomialHeap
 	public int size;
 	public HeapNode last;
 	public HeapNode min;
+	public int numTree;
 	
 	
 	//constructor of BinomialHeap:
@@ -18,6 +19,7 @@ public class BinomialHeap
 		size = 0;
 		last=null;
 		min=null;
+		numTree=0;
 	}
 	
 	/*
@@ -55,20 +57,86 @@ public class BinomialHeap
 	 */
 	public void deleteMin()
 	{
-		return; // should be replaced by student code
-
+		if (this.empty())
+			return;
+		
+		if (size==1) {
+			this.size = 0;
+			this.last = null;
+			this.min = null;
+			this.numTree = 0;
+			return;
+		}
+		
+		if (this.min.child==null) {
+			this.last.next=this.min.next;
+			this.min = findNewMin(this.last, this);
+			this.size -= 1;
+			return;
+		}
+		int treeSize = (int)Math.pow(2, min.rank);
+		HeapNode prev = this.min;
+		HeapNode curr = this.min.next;
+		HeapNode lastChild =min.child;
+		while (curr != this.min) {
+			prev = prev.next;
+			curr = curr.next;
+		}
+		prev.next= curr.next;
+		if (this.min==this.last) {
+			this.last= prev;
+		}
+		BinomialHeap newHeap = buildNewHeap(lastChild, treeSize);
+		this.meld(newHeap);
+		
 	}
 
 	/**
 	 * 
 	 * Return the minimal HeapItem, null if empty.
+	 * O(1)
 	 *
 	 */
 	public HeapItem findMin()
 	{
-		return null; // should be replaced by student code
+		if (this.empty()) {
+			return null;
+		}
+		return this.min.item;
 	} 
-
+	
+	/**
+	 * Method also sets parent of nodes in the list to null
+	 * @param node: child of a deleted node = largest ranked subtree of a deleted node or last of roots list if we deleted min
+	 */
+	private HeapNode findNewMin (HeapNode node, BinomialHeap heap) {
+		
+		HeapNode tmp = node.next;
+		HeapNode min = node;
+		min.parent = null;
+		heap.numTree = 1;
+		while (tmp!=node) {
+			tmp.parent = null;
+			heap.numTree += 1;
+			if(min.getKey()>tmp.getKey()) {
+				min = tmp;
+			}
+			tmp = tmp.next;
+		}
+		return min;
+		
+	}
+	
+	private BinomialHeap buildNewHeap (HeapNode lastNode, int originalSize) {
+		
+		BinomialHeap heap = new BinomialHeap();
+		heap.min = findNewMin(lastNode, heap);
+		heap.last=lastNode;
+		heap.size = originalSize - 1;
+		
+		return heap;
+	}
+	
 	/**
 	 * 
 	 * pre: 0<diff<item.key
@@ -78,7 +146,18 @@ public class BinomialHeap
 	 */
 	public void decreaseKey(HeapItem item, int diff) 
 	{    
-		return; // should be replaced by student code
+		item.key -= diff;
+		sift (item.node);
+		if (item.key<this.min.getKey()){
+			this.min = item.node;
+		}
+		return; 
+	}
+	
+	private void decreaseToMinus (HeapItem item) {
+		item.key = -1;
+		sift (item.node);
+		this.min = item.node;
 	}
 
 	/**
@@ -87,10 +166,37 @@ public class BinomialHeap
 	 *
 	 */
 	public void delete(HeapItem item) 
-	{    
-		return; // should be replaced by student code
+	{   
+		this.decreaseToMinus(item);
+		this.deleteMin();
+		return; 
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * O(logn)
+	 *
+	 */
+	private void sift(HeapNode node) {	
+		while(node.parent != null) { 
+			if (node.parent.getKey() > node.getKey()) {
+				HeapItem smallerItem = node.item;
+				HeapItem largerItem = node.parent.item;
+				node.item = largerItem;
+				node.parent.item = smallerItem;
+				node = node.parent;
+			}
+			else {
+				return;
+			}
+		}
+		
 	}
 
+	
+	//add rank  + numtree updates 
 	/**
 	 * 
 	 * Meld the heap with heap2
@@ -244,13 +350,7 @@ public class BinomialHeap
 		return;
 		}
 	}
-	
-	
-	
-	//example
-	//original [0,0,1,0] 
-	//insert[1,1]
-	//carry [1,0,0,0]	
+		
 	
 	/**
 	 * 
@@ -444,16 +544,7 @@ public class BinomialHeap
 			return this.item.key;
 		}
 		
-		
-		/**
-		 * setters
-		 * @return 
-		 */
-		
-		private void setChild(HeapNode child) {
-			this.child= child;
-		}
-		//TODO	
+
 	}
 
 	/**
