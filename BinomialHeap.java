@@ -1,6 +1,8 @@
 package binomialheaptester.yourcode;
 
 import java.util.Arrays;
+import java.util.HashSet; // DELETE
+import java.util.Set; // DELETE
 
 /**
  * BinomialHeap
@@ -33,7 +35,7 @@ public class BinomialHeap
 	*/
 
 	 @Override
-	    public String toString() {
+	 public String toString() {
 	        // Optionally, customize the toString method if needed
 	        return super.toString();
 	    }
@@ -46,9 +48,7 @@ public class BinomialHeap
 	        }
 	    }
 	
-	/**
-	 * 
-	 * pre: key > 0
+	/** pre: key > 0
 	 *
 	 * Insert (key,info) into the heap and return the newly generated HeapItem.
 	 * explaination: the func get key&string, creat a new heapNode and then creat a new BinomialHeap from the node,
@@ -66,6 +66,7 @@ public class BinomialHeap
 		heap2.numTree = 1;
 		this.meld(heap2);
 		
+		System.out.println("Inserted: "+key);
 		return newNode.item;
 	}
 
@@ -151,37 +152,6 @@ public class BinomialHeap
 		return; 
 	}
 	
-		/*
-		if (this.min.child==null) {
-			this.last.next=this.min.next;
-			this.min = findNewMin(this.last, this);
-			this.size -= 1;
-			return;
-		}
-		
-
-		int treeSize = (int)Math.pow(2, this.min.rank);
-		System.out.println("Old tree size: " + treeSize);
-		HeapNode prev = this.min;
-		HeapNode curr = this.min.next;
-		HeapNode lastChild = min.child;
-		System.out.println("Prev key: " + prev.getKey()+ " curr key: " +curr.getKey() + " child key " + lastChild.getKey());
-		
-		
-		while (curr != this.min) {
-			prev = prev.next;
-			curr = curr.next;
-		}
-		prev.next = curr.next;
-		if (this.min==this.last) {
-			this.last= prev;
-		}
-		
-		BinomialHeap newHeap = buildNewHeap(lastChild, treeSize);
-		this.meld(newHeap);
-		
-	}
-*/
 	/**
 	 * 
 	 * Return the minimal HeapItem, null if empty.
@@ -296,182 +266,7 @@ public class BinomialHeap
 	 */
 	public void meld(BinomialHeap heap2)
 	{
-		if (heap2.empty())
-			return;
-
-		//in case heap is empty
-		if (this.empty()){
-			this.size = heap2.size;
-			this.last= heap2.last;
-			this.min= heap2.min;
-			this.numTree += 1;
-			return;
-		}
-		//in case heap is not empty 
-		else {
-			this.size += heap2.size;
-			int[] originalArray = reverseArray(ToBinaryArray(this.size));
-			int[] newArray =reverseArray(ToBinaryArray(heap2.size));
-			System.out.println(this.size + " " + heap2.size);
-			System.out.println("Melding: " + this.min.getKey() + "<-orig,new->" + heap2.last.getKey());
-			System.out.println(Arrays.toString(originalArray) + "<-rep orig, rep new -> " + Arrays.toString(newArray));
-			int minLen = Math.min(originalArray.length, newArray.length);
-			HeapNode prevOriTree = this.last;
-			HeapNode curOriTree = prevOriTree.next;
-			HeapNode curNewTree = heap2.last.next;
-			HeapNode carry = null; 	//carry is a root
-			//if (curOriTree.getKey()>curNewTree.getKey() && this.min==curOriTree) { //update min pointer
-			//	this.min =curNewTree;
-			//}
-			if (this.min.getKey() > heap2.min.getKey())
-				this.min = heap2.min;
-			for (int i=0; i < minLen-1 ;i++) {
-				if(carry==null) {          		//no carry
-					if (newArray[i]==0 && originalArray[i]==1) {
-						prevOriTree = prevOriTree.next;
-						curOriTree = curOriTree.next;
-					}
-					if (newArray[i]==1 && originalArray[i]==0) {
-						this.simpleJoin(curNewTree, curOriTree,prevOriTree);
-						curNewTree = curNewTree.next;
-						//originalArray[i]=1;
-						this.numTree+=1;
-					}
-					if (newArray[i]==1 && originalArray[i]==1) {
-						carry=this.ComplexJoin(curOriTree, curNewTree, curOriTree.next, prevOriTree);
-						prevOriTree = prevOriTree.next;
-						curOriTree = curOriTree.next;
-						curNewTree = curNewTree.next;
-						originalArray[i+1]=1;
-						this.numTree-=1;
-					}
-
-				}
-				else { 						//carry=1
-					if (newArray[i]==0 && originalArray[i]==0) {
-						this.simpleJoin(carry, curOriTree, prevOriTree);
-						carry=null;
-						this.numTree+=1;
-					}
-					else if (newArray[i]==0 && originalArray[i]==1) {
-						carry=this.ComplexJoin(curOriTree, carry, curOriTree.next, prevOriTree);
-						prevOriTree = prevOriTree.next;
-						curOriTree = curOriTree.next;
-						originalArray[i+1]=1;
-						this.numTree-=1;
-					}
-					else if (newArray[i]==1 && originalArray[i]==0) {
-						carry = this.hangHeapCarry(curNewTree, carry);
-						curNewTree = curNewTree.next;
-						originalArray[i+1]=1;
-						
-					}
-					else if (newArray[i]==1 && originalArray[i]==1) {
-						if (curOriTree.getKey() <= carry.getKey() && curOriTree.getKey() <= curNewTree.getKey()) { //original key is the smallest
-							carry = this.hangHeapCarry(curNewTree, carry);
-							prevOriTree = prevOriTree.next;
-							curOriTree = curOriTree.next;
-							curNewTree = curNewTree.next;
-							originalArray[i+1]=1;
-						}
-						else if(curOriTree.getKey() > carry.getKey() && carry.getKey() < curNewTree.getKey()) { //carry key is the smallest
-							
-							carry.next = curOriTree.next;
-							prevOriTree.next= carry;
-							curOriTree.next = null;
-							carry = this.hangHeapCarry(curNewTree, curOriTree);
-							prevOriTree = prevOriTree.next;
-							curOriTree = curOriTree.next;
-							curNewTree = curNewTree.next;
-							originalArray[i+1]=1;
-							
-						}
-						
-						else if(curNewTree.getKey() < carry.getKey() && curOriTree.getKey() > curNewTree.getKey()) { //newTree key is the smallest
-						
-							curNewTree.next = curOriTree.next;
-							prevOriTree.next= curNewTree;
-							curOriTree.next = null;
-							carry = this.hangHeapCarry(carry, curOriTree);
-							prevOriTree = prevOriTree.next;
-							curOriTree = curOriTree.next;
-							curNewTree = curNewTree.next;
-							originalArray[i+1]=1;
-						}
-					}
-				}
-				
-			}
-			
-			if (originalArray.length == newArray.length && originalArray[originalArray.length-1] == newArray[newArray.length-1] && originalArray[originalArray.length-1] == 1 && carry == null) {
-				curOriTree = ComplexJoin(curOriTree,curNewTree,curOriTree.next,prevOriTree);
-			}
-			
-			this.last = curOriTree;
-			
-			if (originalArray.length == newArray.length && carry != null) {
-				HeapNode curFirst = curOriTree.next;
-				curOriTree.next = carry;
-				carry.next = curFirst;
-				this.last = carry;
-			}
-			
-			if (originalArray.length < newArray.length) {
-				if (carry!= null) {
-					for (int i=originalArray.length; i<newArray.length; i++) {
-						if (newArray[i]==0) {
-							this.simpleJoin(carry, curOriTree.next, curOriTree);
-							carry=null;
-							this.last = carry;
-							curOriTree = curOriTree.next;
-							this.numTree+=1;
-							
-						}
-						else if (newArray[i]==1) {
-							carry = this.hangHeapCarry(curNewTree, carry);
-							curNewTree = curNewTree.next;
-						}
-					}
-					
-				}
-				else { // carry is null
-					HeapNode curFirst = curOriTree.next;
-					curOriTree.next = curNewTree.next;
-					this.last = heap2.last;
-					heap2.last.next = curFirst;
-					for (int i = originalArray.length; i<newArray.length; i++) {
-						if (newArray[i]==1)
-							this.numTree+=1;
-					}
-				}
-				
-			
-			}
-			if (originalArray.length > newArray.length) {
-				if (carry!= null) {
-					for (int i= newArray.length; i < originalArray.length; i++) {
-						if (originalArray[i]==1) {
-							carry=this.ComplexJoin(curOriTree, carry, curOriTree.next, prevOriTree);
-							prevOriTree = prevOriTree.next;
-							curOriTree = curOriTree.next;
-							originalArray[i+1]=1;
-							this.numTree-=1;
-							if(carry==null) {
-								break;
-							}
-						}
-						else {
-							this.numTree+=1;
-							this.simpleJoin(carry, curOriTree.next, prevOriTree);
-							if (i==originalArray.length-1) {
-								this.last = carry;
-							}
-						}
-					}
-				}
-			}
 		return;
-		}
 	}
 		
 	/**
@@ -487,7 +282,12 @@ public class BinomialHeap
 		for (int i=0; i<lenArray; i++) {
 			newArray[i] = array[lenArray-1-i];
 		}
-		return newArray;
+		int[] newNewArray = new int[lenArray+1];
+		for (int i=0; i<lenArray;i++) {
+			newNewArray[i] = newArray[i];
+		}
+		newNewArray[lenArray] = 0;
+		return newNewArray;
 	}
 	
 	/**
@@ -512,12 +312,14 @@ public class BinomialHeap
 	 */
 	//1+1
 	private HeapNode ComplexJoin (HeapNode originalRoot, HeapNode newRoot, HeapNode nodeNext, HeapNode nodePrev) {
-		System.out.println(originalRoot.getKey() + " <-ori,new-> " + newRoot.getKey());
-		if (originalRoot.getKey() < newRoot.getKey()) { //simpler case - the original root is the 
+		//System.out.println(originalRoot.getKey() + " <-ori,new-> " + newRoot.getKey());
+		if (originalRoot.getKey() < newRoot.getKey()) { 
 			hangHeap(originalRoot, newRoot);
+			nodePrev.next = nodeNext;
 			return originalRoot;
 		}
 		
+
 		else {
 			if(this.min == originalRoot) {
 				this.min = newRoot;
@@ -527,7 +329,7 @@ public class BinomialHeap
 				nodePrev.next = newRoot;
 				newRoot.next = originalRoot.next;
 			}
-			System.out.println(newRoot.getKey() + " <-top,low-> " + originalRoot.getKey());
+			//System.out.println(newRoot.getKey() + " <-top,low-> " + originalRoot.getKey());
 			hangHeap(newRoot,originalRoot);
 			
 			
@@ -547,9 +349,9 @@ public class BinomialHeap
 		
 		if(topRoot.child==null) {
 			topRoot.child = lowRoot;
-			System.out.println("Key of child is now: " + topRoot.child.getKey());
+			//System.out.println("Key of child is now: " + topRoot.child.getKey());
 			lowRoot.parent = topRoot;
-			System.out.println("Key of parent is now: " + lowRoot.parent.getKey());
+			//System.out.println("Key of parent is now: " + lowRoot.parent.getKey());
 			topRoot.rank += 1;
 			return topRoot;
 		}
@@ -585,11 +387,11 @@ public class BinomialHeap
 	private static int[] ToBinaryArray(int size) {
 		String binary = Integer.toBinaryString(size);
 		int n = binary.length();
-		int[] BinaryArray = new int[n+1];
+		int[] BinaryArray = new int[n];
 		for (int i=0; i<n; i++) {
 			BinaryArray[i]= binary.charAt(i) - '0';
 		}
-		BinaryArray[n]=0;
+		//BinaryArray[n]=0;
 		return BinaryArray; 
 	}
 	
@@ -672,6 +474,14 @@ public class BinomialHeap
 		public int getKey() {
 			return this.item.key;
 		}
+
+		public HeapItem getItem() {
+			return this.item;
+		}
+
+		public HeapNode getNext() {
+			return this.next;
+		}
 		
 
 	}
@@ -692,5 +502,120 @@ public class BinomialHeap
 			this.info= info;
 	}
 		//TODO setters and getters - to think what and how
+
+		public int getKey() {
+			return this.key;
+		}
 	}
+	
+	
+	// PRINT TREE
+
+
+
+	public void print_r() {
+	    {
+	        int s;
+	        if(this.getLast().getRank() == 0){s = 1;}
+	        else if(this.getLast().getRank() == 1){s = 2;}
+	        else if(this.getLast().getRank() == 2){s = 3;}
+	        else {
+	            s = (int) Math.pow(2, this.getLast().getRank() - 1);
+	        }
+	        int[][][] answer = new int[this.numTrees()][s][s];
+	        BinomialHeap.HeapNode curr_tree = this.getLast().getNext();
+	        for (int k = 0; k < this.numTrees(); k++ ) {
+	            Set<BinomialHeap.HeapNode> dic = new HashSet<>();
+	            this.print_rec(curr_tree, 0, 0, dic, answer, k);
+	            curr_tree = curr_tree.getNext();
+	        }
+	        int x = 0;
+	        for (int i = 0; i < answer[x].length; i++) {
+	            for (int j = 0; j < answer[x].length; j++) {
+	                if(answer[x][i][j] != 0) {
+	                    System.out.print(answer[x][i][j] + " ");
+	                }
+	                else{System.out.print("  ");}
+	                if(x == answer.length-1 && j == answer[x].length-1) {break;}
+	                if(j == answer[x].length-1) {
+	                    if (x + 1 < answer.length) {x += 1;}
+	                    j = -1;
+	                }
+
+	            }
+	            System.out.println();
+	            x = 0;
+	        }
+	    }
+	}
+	private HeapNode getLast() {
+		return this.last;
+	}
+
+	public void print_rec(BinomialHeap.HeapNode first, int depth, int x, Set<BinomialHeap.HeapNode> dic, int[][][] answer, int num_in_row) {
+	        if (dic.contains(first)){return;}
+	        dic.add(first);
+	        answer[num_in_row][depth][x] = first.getItem().getKey();
+	        if(depth != 0) {
+	            print_rec(first.getNext(), depth, x + 1, dic, answer, num_in_row);
+	        }
+	        if(first.getChild() != null){
+	            print_rec(first.getChild().getNext(),depth+1,x,dic,answer, num_in_row);
+	        }
+	    }
+
+
+	public static void main(String[] args) {
+			BinomialHeap heap = new BinomialHeap();
+			heap.insert(1,"hello");
+			//heap.print_r();
+
+			heap.insert(2,"2");
+			//heap.print_r();
+
+			heap.insert(3,"3");
+			//heap.print_r();
+
+			heap.insert(4,"3");
+			heap.print_r();
+
+			heap.insert(5,"3");
+			heap.print_r();
+
+			heap.insert(6,"3");
+			heap.print_r();
+
+			heap.insert(7,"3");
+			heap.insert(8,"3");
+			System.out.println("Printing tree now: ");
+			//heap.print_r();
+
+		}
+	
+	public static HeapNode link(HeapNode tree1, HeapNode tree2)
+	{
+		HeapNode top = tree1;
+		HeapNode low = tree2;
+		
+		if (tree1.item.key > tree2.item.key) {
+			top = tree2;
+			low = tree1;
+		}
+		
+		low.parent = top;
+		if (top.child != null) {
+			low.next = top.child.next;
+			top.child.next = low;
+		}
+		else {
+			low.next = low;
+		}
+		top.child = low;
+		top.rank += 1;
+		return top;
+	}
+	
+	
+	
+	
 }
